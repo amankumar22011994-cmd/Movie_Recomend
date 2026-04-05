@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineSeek | AI Movie Recommendations</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f1014;
+            --card-bg: #1b1c21;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.5);
+            --gradient-1: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Navbar & Header */
+        nav {
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 16, 20, 0.8);
+            backdrop-filter: blur(12px);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 8rem 2rem 4rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 0%, var(--accent-glow) 0%, transparent 60%);
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+        }
+
+        .hero p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto 3rem;
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 4rem;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            padding: 0.8rem 1.5rem;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent-glow);
+            transform: translateY(-2px);
+        }
+
+        /* Movie Grid */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem 4rem;
+        }
+
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .movie-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            cursor: pointer;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .card-image-placeholder {
+            height: 380px;
+            width: 100%;
+            background: #2a2b33;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-image-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .movie-card:hover .card-image-placeholder img {
+            transform: scale(1.1);
+        }
+
+        .card-content {
+            padding: 1.5rem;
+            flex-grow: 1;
+            background: linear-gradient(to top, var(--card-bg) 0%, rgba(27, 28, 33, 0.8) 100%);
+        }
+
+        .movie-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .movie-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+
+        .movie-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .rating-star {
+            color: #fbbf24;
+        }
+
+        .description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Loading Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* Empty State */
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="logo">CineSeek</div>
+        <div style="font-size: 0.9rem; color: var(--text-secondary);">Welcome, User</div>
+    </nav>
+
+    <div class="hero">
+        <h1>Discover Your Next <br /> Favorite Movie</h1>
+        <p>Curated recommendations tailored to your mood. Select a genre below to get started.</p>
+
+        <div class="filters" id="genre-filters">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="movie-grid" id="recommendations">
+            <!-- Movies injected here -->
+        </div>
+    </div>
+
+    <script>
+        // Mock Data
+        const movies = [
+            {
+                id: 1,
+                title: "Inception",
+                genre: "Sci-Fi",
+                rating: 8.8,
+                year: 2010,
+                description: "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
+                image: "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&q=80&w=800"
+            },
+            {
+                id: 2,
+                title: "The Dark Knight",
+                genre: "Action",
+                rating: 9.0,
+                year: 2008,
+                description: "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.",
+                image: "https://images.unsplash.com/photo-1478720568477-152d9b164e63?auto=format&fit=crop&q=80&w=800"
+            },
+            {
+                id: 3,
+                title: "Interstellar",
+                genre: "Sci-Fi",
+                rating: 8.6,
+                year: 2014,
+                description: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
+                image: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80&w=800"
+            },
+            {
+                id: 4,
+                title: "The Hangover",
+                genre: "Comedy",
+                rating: 7.7,
+                year: 2009,
+                description: "Three buddies wake up from a bachelor party in Las Vegas, with no memory of the previous night and the bachelor missing.",
+                image: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?auto=format&fit=crop&q=80&w=800"
+            },
+            {
+                id: 5,
+                title: "Parasite",
+                genre: "Drama",
+                rating: 8.6,
+                year: 2019,
+                description: "Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.",
+                image: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&q=80&w=800"
+            },
+            {
+                id: 6,
+                title: "Get Out",
+                genre: "Horror",
+                rating: 7.7,
+                year: 2017,
+                description: "A young African-American visits his white girlfriend's parents for the weekend, where his simmering uneasiness about their reception of him eventually reaches a boiling point.",
+                image: "https://images.unsplash.com/photo-1505686994434-e3cc5abf1330?auto=format&fit=crop&q=80&w=800"
+            },
+            {
+                id: 7,
+                title: "Avengers: Endgame",
+                genre: "Action",
+                rating: 8.4,
+                year: 2019,
+                description: "After the devastating events of Infinity War, the universe is in ruins. With the help of remaining allies, the Avengers assemble once more in order to reverse Thanos' actions.",
+                image: "https://images.unsplash.com/photo-1608889476561-6242cfdbf622?auto=format&fit=crop&q=80&w=800"
+            },
+            {
+                id: 8,
+                title: "Superbad",
+                genre: "Comedy",
+                rating: 7.6,
+                year: 2007,
+                description: "Two co-dependent high school seniors are forced to deal with separation anxiety after their plan to stage a booze-soaked party goes awry.",
+                image: "https://images.unsplash.com/photo-1529335764857-3f1164d1cb24?auto=format&fit=crop&q=80&w=800"
+            },
+            {
+                id: 9,
+                title: "A Quiet Place",
+                genre: "Horror",
+                rating: 7.5,
+                year: 2018,
+                description: "In a post-apocalyptic world, a family is forced to live in silence while hiding from monsters with ultra-sensitive hearing.",
+                image: "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&q=80&w=800"
+            }
+        ];
+
+        const allGenres = ["All", ...new Set(movies.map(m => m.genre))];
+        let activeGenre = "All";
+
+        const filtersContainer = document.getElementById('genre-filters');
+        const gridContainer = document.getElementById('recommendations');
+
+        // Initialize UI
+        function init() {
+            renderFilters();
+            renderMovies();
+        }
+
+        function renderFilters() {
+            filtersContainer.innerHTML = '';
+            allGenres.forEach(genre => {
+                const btn = document.createElement('button');
+                btn.className = `filter-btn ${activeGenre === genre ? 'active' : ''}`;
+                btn.textContent = genre;
+                btn.onclick = () => {
+                    activeGenre = genre;
+                    renderFilters(); // Re-render to update active class
+                    renderMovies();
+                };
+                filtersContainer.appendChild(btn);
+            });
+        }
+
+        function renderMovies() {
+            gridContainer.innerHTML = '';
+
+            const filteredMovies = activeGenre === "All"
+                ? movies
+                : movies.filter(m => m.genre === activeGenre);
+
+            if (filteredMovies.length === 0) {
+                gridContainer.innerHTML = '<div class="empty-state"><h3>No movies found in this genre</h3></div>';
+                return;
+            }
+
+            filteredMovies.forEach((movie, index) => {
+                const card = document.createElement('div');
+                card.className = 'movie-card fade-in';
+                card.style.animationDelay = `${index * 100}ms`;
+
+                card.innerHTML = `
+                    <div class="card-image-placeholder">
+                        <img src="${movie.image}" alt="${movie.title}">
+                        <span class="movie-badge">${movie.genre}</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="movie-meta">
+                            <span>${movie.year}</span>
+                            <span><i class="rating-star">★</i> ${movie.rating}</span>
+                        </div>
+                        <h3 class="movie-title">${movie.title}</h3>
+                        <p class="description">${movie.description}</p>
+                    </div>
+                `;
+                gridContainer.appendChild(card);
+            });
+        }
+
+        // Start
+        init();
+
+    </script>
+</body>
+
+</html>
